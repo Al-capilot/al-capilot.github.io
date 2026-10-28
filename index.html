@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Al-business by Al-capilot</title>
+  <style>
+    :root {
+      --bg: #081120;
+      --bg2: #0d1b2a;
+      --panel: #101f32;
+      --card: #14253d;
+      --line: #223b5c;
+      --text: #edf5ff;
+      --muted: #9fb3c8;
+      --primary: #f7b500;
+      --secondary: #3b82f6;
+      --success: #22c55e;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      background: linear-gradient(180deg, var(--bg), var(--bg2));
+      color: var(--text);
+      font-family: Arial, sans-serif;
+    }
+    a { color: inherit; text-decoration: none; }
+    .container { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
+
+    .topbar {
+      background: rgba(8, 17, 32, 0.8);
+      border-bottom: 1px solid var(--line);
+      position: sticky;
+      top: 0;
+      backdrop-filter: blur(10px);
+      z-index: 10;
+    }
+    .nav {
+      height: 72px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+    }
+    .brand { font-size: 28px; font-weight: 800; color: var(--primary); }
+    .nav a { margin-left: 18px; color: var(--muted); font-size: 14px; }
+    .btn {
+      border: none; border-radius: 12px; padding: 12px 18px; font-weight: 700; cursor: pointer;
+      transition: 0.2s ease;
+    }
+    .btn-primary { background: var(--primary); color: #111827; }
+    .btn-secondary { background: var(--secondary); color: white; }
+    .btn:hover { transform: translateY(-1px); }
+
+    .hero { padding: 80px 0 40px; }
+    .hero-grid {
+      display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 28px; align-items: center;
+    }
+    h1 {
+      font-size: 54px; line-height: 1.08; margin: 0 0 18px; letter-spacing: -1.2px;
+    }
+    .subtitle {
+      color: var(--muted); font-size: 18px; line-height: 1.8; margin: 0 0 22px; max-width: 650px;
+    }
+    .hero-actions { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 28px; }
+    .stats {
+      display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px;
+    }
+    .stat {
+      background: rgba(255,255,255,0.02); border: 1px solid var(--line); border-radius: 14px; padding: 16px;
+    }
+    .stat b { display: block; font-size: 24px; margin-bottom: 8px; }
+    .stat span { color: var(--muted); font-size: 13px; }
+
+    .panel {
+      background: linear-gradient(180deg, var(--panel), var(--card));
+      border: 1px solid var(--line); border-radius: 22px; padding: 24px; box-shadow: 0 24px 42px rgba(0,0,0,0.2);
+    }
+    .mini {
+      background: rgba(255,255,255,0.02); border: 1px solid var(--line); border-radius: 14px; padding: 16px; margin-bottom: 14px;
+    }
+    .mini-title {
+      color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 8px;
+    }
+    .mini-value { font-size: 30px; font-weight: 800; }
+
+    section { padding: 30px 0 50px; }
+    h2 { font-size: 34px; margin: 0 0 18px; }
+    .feature-grid {
+      display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 18px; margin-top: 24px;
+    }
+    .feature {
+      background: rgba(255,255,255,0.02); border: 1px solid var(--line); border-radius: 18px; padding: 22px 18px;
+    }
+    .feature-icon {
+      width: 54px; height: 54px; display: flex; align-items: center; justify-content: center; border-radius: 14px; background: rgba(247,181,0,.12); font-size: 24px; margin-bottom: 14px;
+    }
+    .feature h3 { margin: 0 0 10px; font-size: 22px; }
+    .feature p { margin: 0; color: var(--muted); line-height: 1.7; font-size: 15px; }
+
+    .pricing { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; margin-top: 20px; }
+    .price-card {
+      background: rgba(255,255,255,0.02); border: 1px solid var(--line); border-radius: 20px; padding: 24px 20px; position: relative;
+    }
+    .price-card.popular {
+      border-color: rgba(247,181,0,0.4); box-shadow: 0 0 0 1px rgba(247,181,0,0.2); transform: translateY(-6px);
+    }
+    .price { font-size: 42px; font-weight: 800; margin: 12px 0; }
+    .price small { font-size: 15px; color: var(--muted); font-weight: 500; }
+    .price-card ul { list-style: none; padding: 0; margin: 20px 0 22px; color: var(--muted); line-height: 2.1; }
+    .price-card li::before { content: "✓ "; color: var(--success); font-weight: 700; }
+
+    .chat-box {
+      background: linear-gradient(180deg, var(--panel), var(--card));
+      border: 1px solid var(--line); border-radius: 22px; overflow: hidden; margin-top: 28px;
+    }
+    .chat-header {
+      padding: 16px 18px; border-bottom: 1px solid var(--line); font-weight: 700; background: rgba(255,255,255,0.02);
+    }
+    .chat-body {
+      min-height: 240px; padding: 18px; display: flex; flex-direction: column; gap: 12px; background: rgba(255,255,255,0.01);
+    }
+    .message {
+      max-width: 80%; border-radius: 12px; padding: 12px 14px; line-height: 1.6; word-wrap: break-word;
+    }
+    .message.user { align-self: flex-end; background: #1d4ed8; }
+    .message.bot { align-self: flex-start; background: #1f2937; border: 1px solid var(--line); }
+    .chat-input-wrap { padding: 18px; border-top: 1px solid var(--line); }
+    textarea {
+      width: 100%; min-height: 90px; border-radius: 12px; border: 1px solid var(--line); background: #0d1827; color: var(--text); padding: 14px; resize: vertical; font-size: 15px;
+    }
+    #sendBtn { margin-top: 12px; }
+
+    .cta-box {
+      background: linear-gradient(135deg, #183356, #0d1728);
+      border: 1px solid var(--line); border-radius: 20px; padding: 30px 26px; display: flex; justify-content: space-between; align-items: center; gap: 18px; flex-wrap: wrap;
+    }
+    .cta-box h3 { margin: 0 0 8px; font-size: 32px; }
+    .cta-box p { margin: 0; color: var(--muted); }
+
+    footer {
+      padding: 26px 0 50px; color: var(--muted); border-top: 1px solid var(--line); margin-top: 30px;
+    }
+
+    @media (max-width: 960px) {
+      .hero-grid, .feature-grid, .pricing { grid-template-columns: 1fr 1fr; }
+      h1 { font-size: 42px; }
+    }
+    @media (max-width: 680px) {
+      .nav a { display: none; }
+      .hero-grid, .feature-grid, .pricing, .stats { grid-template-columns: 1fr; }
+      h1 { font-size: 36px; }
+      .cta-box { flex-direction: column; align-items: flex-start; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="container nav">
+      <div class="brand">Al-business</div>
+      <nav>
+        <a href="#features">Features</a>
+        <a href="#pricing">Pricing</a>
+        <a href="#demo">Demo</a>
+        <a href="#contact">Contact</a>
+      </nav>
+      <button class="btn btn-primary" onclick="document.getElementById('chatInput').focus()">Book demo</button>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="hero">
+      <div class="hero-grid">
+        <div>
+          <h1>AI-powered sourcing for global B2B growth</h1>
+          <p class="subtitle">
+            Automate supplier discovery, RFQ workflows, quote generation,
+            and multilingual buyer journeys with intelligent AI agents built for modern trade businesses.
+          </p>
+          <div class="hero-actions">
+            <button class="btn btn-primary" onclick="document.getElementById('chatInput').focus()">Book a demo</button>
+            <button class="btn btn-secondary" onclick="document.getElementById('pricing').scrollIntoView()">See pricing</button>
+          </div>
+
+          <div class="stats">
+            <div class="stat"><b>120K+</b><span>Verified suppliers</span></div>
+            <div class="stat"><b>10M+</b><span>Trade orders</span></div>
+            <div class="stat"><b>98.6%</b><span>On-time delivery</span></div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="mini"><div class="mini-title">Top products</div><div class="mini-value">Industrial • Packaging • Tech</div></div>
+          <div class="mini"><div class="mini-title">RFQ activity</div><div class="mini-value">1,240</div></div>
+          <div class="mini"><div class="mini-title">Avg. response</div><div class="mini-value">2.3 hrs</div></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="features">
+      <h2>Why teams choose our platform</h2>
+      <div class="feature-grid">
+        <div class="feature">
+          <div class="feature-icon">🤖</div>
+          <h3>AI sourcing agent</h3>
+          <p>Find suppliers, qualify leads, and generate quotes in minutes instead of days.</p>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">🌍</div>
+          <h3>Multilingual support</h3>
+          <p>Sell and support buyers across international markets with local language support.</p>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">📦</div>
+          <h3>RFQ automation</h3>
+          <p>Route RFQs to the right suppliers and shorten the response cycle.</p>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">📊</div>
+          <h3>KPI analytics</h3>
+          <p>Track conversion, response time, supplier performance, and revenue growth.</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="pricing">
+      <h2>Simple pricing for growing teams</h2>
+      <div class="pricing">
+        <div class="price-card">
+          <div style="font-size:18px; font-weight:700;">Starter</div>
+          <div class="price">$29 <small>/ month</small></div>
+          <ul>
+            <li>1 workspace</li>
+            <li>5 supplier profiles</li>
+            <li>50 RFQs / month</li>
+            <li>Basic AI assistant</li>
+          </ul>
+          <button class="btn btn-secondary">Start free</button>
+        </div>
+
+        <div class="price-card popular">
+          <div style="font-size:18px; font-weight:700;">Pro</div>
+          <div class="price">$99 <small>/ month</small></div>
+          <ul>
+            <li>Unlimited RFQs</li>
+            <li>Supplier scoring</li>
+            <li>Multilingual AI workflows</li>
+            <li>Advanced analytics</li>
+          </ul>
+          <button class="btn btn-primary">Get started</button>
+        </div>
+
+        <div class="price-card">
+          <div style="font-size:18px; font-weight:700;">Enterprise</div>
+          <div class="price">$399 <small>/ month</small></div>
+          <ul>
+            <li>Custom agents</li>
+            <li>API access</li>
+            <li>White-label support</li>
+            <li>Dedicated onboarding</li>
+          </ul>
+          <button class="btn btn-secondary">Talk to sales</button>
+        </div>
+      </div>
+    </section>
+
+    <section id="demo">
+      <h2>Built for buyers, suppliers, and teams</h2>
+
+      <div class="chat-box">
+        <div class="chat-header">Project Assistant</div>
+        <div class="chat-body" id="chatBody">
+          <div class="message bot">
+            Hello! I can help you design a B2B sourcing platform and AI workflow.
+          </div>
+        </div>
+        <div class="chat-input-wrap">
+          <textarea id="chatInput">Alibaba tarzı B2B e-ticaret platformu qur. FastAPI, PostgreSQL, Docker, deploy guide.</textarea>
+          <button class="btn btn-primary" id="sendBtn">Send</button>
+        </div>
+      </div>
+    </section>
+
+    <section id="contact">
+      <div class="cta-box">
+        <div>
+          <h3>Scale your B2B sales with AI agents</h3>
+          <p>Turn every inquiry into a qualified opportunity.</p>
+        </div>
+        <div class="hero-actions" style="margin:0;">
+          <button class="btn btn-primary">Schedule demo</button>
+          <button class="btn btn-secondary">See pricing</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="container">© 2026 Al-business by Al-capilot</div>
+  </footer>
+
+  <script>
+    const chatBody = document.getElementById("chatBody");
+    const chatInput = document.getElementById("chatInput");
+    const sendBtn = document.getElementById("sendBtn");
+    const API_URL = "https://al-business-multi-agent.onrender.com/api/chat";
+
+    function addMessage(text, sender) {
+      const message = document.createElement("div");
+      message.className = "message " + sender;
+      message.textContent = text;
+      chatBody.appendChild(message);
+      chatBody.scrollTop = chatBody.scrollHeight;
+    }
+
+    async function sendRequest() {
+      const prompt = chatInput.value.trim();
+      if (!prompt) return;
+
+      addMessage(prompt, "user");
+
+      const loading = document.createElement("div");
+      loading.className = "message bot";
+      loading.textContent = "Processing...";
+      chatBody.appendChild(loading);
+
+      try {
+        const response = await fetch(API_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ prompt })
+        });
+
+        const data = await response.json();
+        loading.textContent = data.response || JSON.stringify(data, null, 2);
+      } catch (error) {
+        loading.textContent = "Backend unavailable. Please check Render API status.";
+      }
+    }
+
+    sendBtn.addEventListener("click", sendRequest);
+
+    chatInput.addEventListener("keydown", function (e) {
+      if (e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault();
+        sendRequest();
+      }
+    });
+  </script>
+</body>
+</html>
