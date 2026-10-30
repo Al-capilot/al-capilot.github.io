@@ -1,0 +1,6 @@
+services:
+  - type: web
+    name: al-capilot-website
+    runtime: static
+    buildCommand: 'true'
+    staticPublishPath: .
