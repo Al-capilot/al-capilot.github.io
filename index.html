@@ -52,6 +52,7 @@
     }
     .btn-primary { background: var(--primary); color: #111827; }
     .btn-secondary { background: var(--secondary); color: white; }
+    .btn-success { background: var(--success); color: white; }
     .btn:hover { transform: translateY(-1px); }
 
     .hero { padding: 80px 0 40px; }
@@ -182,6 +183,7 @@
           <div class="hero-actions">
             <button class="btn btn-primary" onclick="document.getElementById('chatInput').focus()">Book a demo</button>
             <button class="btn btn-secondary" onclick="document.getElementById('pricing').scrollIntoView()">See pricing</button>
+            <button id="confirmBtn" class="btn btn-success">Təsdiq et</button>
           </div>
 
           <div class="stats">
@@ -305,7 +307,8 @@
     const chatBody = document.getElementById("chatBody");
     const chatInput = document.getElementById("chatInput");
     const sendBtn = document.getElementById("sendBtn");
-    const API_URL = "https://al-business-backend.onrender.com/api/chat";
+    const confirmBtn = document.getElementById("confirmBtn");
+    const API_URL = "https://al-business-backend.onrender.com/run";
 
     function addMessage(text, sender) {
       const message = document.createElement("div");
@@ -340,7 +343,32 @@
       }
     }
 
+    async function confirmRequest() {
+      const button = confirmBtn;
+      button.textContent = "Göndərilir...";
+      button.disabled = true;
+
+      try {
+        const response = await fetch(API_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            prompt: "Maliyyə və AI trendlərini araşdır."
+          })
+        });
+
+        const data = await response.json();
+        alert(JSON.stringify(data, null, 2));
+      } catch (error) {
+        alert("Xəta: " + error.message);
+      } finally {
+        button.textContent = "Təsdiq et";
+        button.disabled = false;
+      }
+    }
+
     sendBtn.addEventListener("click", sendRequest);
+    confirmBtn.addEventListener("click", confirmRequest);
 
     chatInput.addEventListener("keydown", function (e) {
       if (e.key === "Enter" && !e.shiftKey) {
