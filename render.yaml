@@ -25,8 +25,3 @@ services:
         value: "60"
       - key: LLM_TIMEOUT_SECONDS
         value: "60"
-  - type: web
-    name: al-capilot-website
-    runtime: static
-    buildCommand: 'true'
-    staticPublishPath: .
