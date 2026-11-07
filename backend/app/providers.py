@@ -39,16 +39,21 @@ async def ask_gemini(system_prompt: str, user_prompt: str) -> str:
     if not config.GOOGLE_API_KEY:
         raise ProviderError("GOOGLE_API_KEY is not configured in Render.", status_code=503)
 
+    # Send the key in a header rather than the URL to reduce accidental exposure in logs.
     url = (
         "https://generativelanguage.googleapis.com/v1beta/models/"
-        f"{config.GOOGLE_MODEL}:generateContent?key={config.GOOGLE_API_KEY}"
+        f"{config.GOOGLE_MODEL}:generateContent"
     )
     payload = {
         "systemInstruction": {"parts": [{"text": system_prompt}]},
         "contents": [{"role": "user", "parts": [{"text": user_prompt}]}],
         "generationConfig": {"temperature": 0.2, "maxOutputTokens": 1800},
     }
-    data = await _post_json(url, headers={"Content-Type": "application/json"}, payload=payload)
+    data = await _post_json(
+        url,
+        headers={"Content-Type": "application/json", "x-goog-api-key": config.GOOGLE_API_KEY},
+        payload=payload,
+    )
     try:
         parts = data["candidates"][0]["content"]["parts"]
         text = "\n".join(part["text"] for part in parts if isinstance(part.get("text"), str)).strip()

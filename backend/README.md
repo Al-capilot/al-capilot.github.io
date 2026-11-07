@@ -21,11 +21,11 @@ Add these environment variables in the Render dashboard (never commit real keys)
 
 - `GOOGLE_API_KEY`: Google AI Studio API key
 - `GROQ_API_KEY`: Groq API key
-- `GOOGLE_MODEL`: a model ID currently enabled for your Google API project
-- `GROQ_MODEL`: a model ID currently enabled in your Groq console
+- `GOOGLE_MODEL`: a model ID currently enabled for your Google API project (default: `gemini-2.5-flash`)
+- `GROQ_MODEL`: a model ID currently enabled in your Groq console (default: `llama-3.3-70b-versatile`)
 - `ALLOWED_ORIGINS`: `https://al-capilot.github.io`
 
-The model defaults are examples and can change or become unavailable; verify the model IDs and quotas in the provider consoles. Provider free tiers have their own quotas and are not unlimited.
+Model availability and free-tier eligibility can change. Confirm the exact model IDs in the provider consoles before deploying. The application reads model names from environment variables, so you can change them in Render without editing code. Provider free tiers have quotas and are not unlimited.
 
 ## API
 
@@ -42,7 +42,7 @@ The successful response contains a `response` string with the plan, implementati
 
 ## Safety and operations
 
-- The API keys are read server-side from environment variables and are never sent to the browser.
+- API keys are read server-side from environment variables and are never sent to the browser. The Gemini key is sent to Google's API using an authentication header, not as a URL query parameter.
 - Prompts are length-limited; requests are rate-limited per IP in process memory and concurrent model workflows are capped.
-- The in-memory rate limit is a basic single-instance guard, not authentication or a durable abuse-prevention system. Before public launch, add a real user/authentication or anti-abuse layer and provider budget alerts/quotas. Do not treat CORS as access control.
+- The in-memory rate limit is a basic single-instance guard, not authentication or a durable abuse-prevention system. Before public launch, add real user authentication or an anti-abuse layer and provider budget alerts/quotas. Do not treat CORS as access control.
 - No generated code is run. Do not expose a generated-code execution endpoint without an isolated disposable sandbox and strict resource limits.

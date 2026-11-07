@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 import time
 from collections import defaultdict, deque
 from contextlib import asynccontextmanager
@@ -37,7 +38,7 @@ class InMemoryRateLimiter:
 
 
 limiter = InMemoryRateLimiter()
-crew_semaphore = __import__("asyncio").Semaphore(2)
+crew_semaphore = asyncio.Semaphore(2)
 
 
 @asynccontextmanager
