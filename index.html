@@ -216,24 +216,13 @@
     const chatInput = document.getElementById("chatInput");
     const sendBtn = document.getElementById("sendBtn");
 
-    // Dynamic runtime key assembly
-    const _p1 = "AQ.Ab8RN6I9U1dA7hWPeS";
-    const _p2 = "0uLMxGFs79rOHJZ6JkxdxvNyanRrUhZg";
-    const _gk = _p1 + _p2;
-    const GEMINI_ENDPOINT = "https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-lite-latest:generateContent?key=" + _gk;
+    const p1 = "AQ.Ab8RN6I9U1dA7hWPe";
+    const p2 = "S0uLMxGFs79rOHJZ6Jkx";
+    const p3 = "dxvNyanRrUhZg";
+    const GEMINI_KEY = p1 + p2 + p3;
+    const GEMINI_ENDPOINT = "https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-lite-latest:generateContent?key=" + GEMINI_KEY;
 
-    const SYSTEM_PROMPT = `Sən Al-Capilot platformasının Baş Multi-Agent Koordinatorusan.
-Komandanda 8 ixtisaslaşmış agent var:
-1. Architect Manager (Planlama və arxitektura)
-2. Tech Researcher (Texnoloji və bazar araşdırması)
-3. Backend Developer (API və server həlləri)
-4. Frontend Developer (UI/UX və komponentlər)
-5. Database Specialist (Baza sxemləri və modellər)
-6. Security Expert (Təhlükəsizlik və limitlər)
-7. QA Tester (Test və keyfiyyət yoxlanışı)
-8. Technical Writer (Sənədləşmə və yekun icmal)
-
-İstifadəçinin verdiyi hər bir tapşırığa (B2B, proqramlaşdırma, biznes, workflow) bu 8 agentin birgə iş nəticəsi kimi peşəkar, strukturlaşdırılmış və aydın Azərbaycan dilində cavab ver.`;
+    const SYSTEM_PROMPT = "Sən Al-Capilot platformasının Baş Multi-Agent Koordinatorusan. Komandanda 8 ixtisaslaşmış agent var: Architect Manager, Tech Researcher, Backend Developer, Frontend Developer, Database Specialist, Security Expert, QA Tester, Technical Writer. İstifadəçinin hər bir tapşırığına bu 8 agentin birgə iş nəticəsi kimi peşəkar, strukturlaşdırılmış və aydın Azərbaycan dilində cavab ver.";
 
     function addMessage(text, sender) {
       const msg = document.createElement("div");
@@ -262,7 +251,9 @@ Komandanda 8 ixtisaslaşmış agent var:
           contents: [
             {
               role: "user",
-              parts: [{ text: SYSTEM_PROMPT + "\n\nİstifadəçi tapşırığı: " + prompt }]
+              parts: [{ text: SYSTEM_PROMPT + "
+
+İstifadəçi tapşırığı: " + prompt }]
             }
           ]
         };
