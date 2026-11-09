@@ -158,6 +158,20 @@
       return message;
     }
 
+    function extractResponseText(value, depth = 0) {
+      if (typeof value === "string") return value.trim();
+      if (typeof value === "number") return String(value);
+      if (!value || typeof value !== "object" || depth > 3) return "";
+
+      for (const key of ["answer", "response", "result", "output", "text", "message", "data"]) {
+        if (Object.prototype.hasOwnProperty.call(value, key)) {
+          const text = extractResponseText(value[key], depth + 1);
+          if (text) return text;
+        }
+      }
+      return "";
+    }
+
     chatForm.addEventListener("submit", async (event) => {
       event.preventDefault();
       const prompt = chatInput.value.trim();
@@ -173,14 +187,26 @@
       try {
         const response = await fetch(API_URL, {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: { "Content-Type": "application/json", "Accept": "application/json" },
           body: JSON.stringify({ prompt })
         });
-        const data = await response.json().catch(() => ({}));
-        if (!response.ok) {
-          throw new Error(data.detail || "Server xətası: " + response.status);
+        const rawBody = await response.text();
+        let data = {};
+        if (rawBody) {
+          try {
+            data = JSON.parse(rawBody);
+          } catch {
+            data = { message: rawBody };
+          }
         }
-        loading.textContent = data.answer || data.response || data.result || JSON.stringify(data, null, 2);
+
+        if (!response.ok) {
+          const serverMessage = extractResponseText(data.detail || data.error || data.message);
+          throw new Error(serverMessage || "Server xətası: " + response.status);
+        }
+
+        const answer = extractResponseText(data);
+        loading.textContent = answer || "Backend uğurlu cavab qaytardı, amma cavab mətni boşdur.";
       } catch (error) {
         loading.textContent = "Sorğu göndərilə bilmədi: " + error.message + ". Backend xidmətinin işlədiyini yoxlayın.";
       } finally {
@@ -192,7 +218,7 @@
     });
 
     chatInput.addEventListener("keydown", (event) => {
-      if (event.key === "Enter" && !event.shiftKey) {
+      if (event.key === "Enter" && !event.shiftKey && !event.isComposing) {
         event.preventDefault();
         chatForm.requestSubmit();
       }
