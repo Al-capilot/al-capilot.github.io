@@ -47,17 +47,16 @@
     .message { max-width: 88%; padding: 14px 16px; border-radius: 14px; font-size: 16px; line-height: 1.6; white-space: pre-wrap; overflow-wrap: anywhere; }
     .message.user { align-self: flex-end; background: #2563eb; color: #fff; }
     .message.bot { align-self: flex-start; background: rgba(255,255,255,.05); border: 1px solid var(--line); color: #e2e8f0; }
-    .chat-input-wrap { padding: 16px; border-top: 1px solid var(--line); display: flex; align-items: stretch; gap: 12px; }
+    .chat-input-wrap { position: relative; padding: 16px; border-top: 1px solid var(--line); }
     textarea {
       display: block;
-      flex: 1 1 auto;
-      width: 0;
+      width: 100%;
       min-width: 0;
-      min-height: 72px;
+      min-height: 112px;
       max-height: 220px;
-      padding: 14px;
+      padding: 14px 76px 14px 14px;
       border: 1px solid #334155;
-      border-radius: 12px;
+      border-radius: 14px;
       outline: none;
       background: #090d16;
       color: var(--text);
@@ -66,9 +65,30 @@
       resize: vertical;
     }
     textarea:focus { border-color: var(--primary); }
-    .btn { flex: 0 0 auto; min-width: 120px; padding: 12px 22px; border: 0; border-radius: 12px; background: var(--primary); color: #0b0f19; font-size: 17px; font-weight: 800; cursor: pointer; }
-    .btn:hover { background: var(--primary-hover); }
-    .btn:disabled { opacity: .6; cursor: wait; }
+    .btn {
+      position: absolute;
+      right: 27px;
+      bottom: 27px;
+      display: grid;
+      place-items: center;
+      width: 54px;
+      height: 54px;
+      padding: 0;
+      border: 1px solid rgba(255,255,255,.22);
+      border-radius: 50%;
+      background: var(--primary);
+      color: #0b0f19;
+      font-size: 29px;
+      line-height: 1;
+      cursor: pointer;
+      box-shadow: 0 5px 18px rgba(56,189,248,.28);
+      animation: robot-float 2.4s ease-in-out infinite;
+      transition: background .2s, transform .2s, box-shadow .2s;
+    }
+    .btn:hover { background: var(--primary-hover); transform: scale(1.06); box-shadow: 0 7px 22px rgba(56,189,248,.4); }
+    .btn:disabled { opacity: .7; cursor: wait; animation: none; }
+    .btn:focus-visible { outline: 3px solid white; outline-offset: 3px; }
+    @keyframes robot-float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
     .hint { margin: -4px 16px 14px; color: var(--muted); font-size: 13px; }
     footer { padding: 24px 16px; border-top: 1px solid var(--line); text-align: center; color: var(--muted); }
     @media (max-width: 600px) {
@@ -80,10 +100,13 @@
       .chat-header { padding: 14px; }
       .chat-body { min-height: 220px; max-height: 48vh; padding: 14px; }
       .message { max-width: 96%; }
-      .chat-input-wrap { flex-direction: column; padding: 14px; gap: 10px; }
-      textarea { width: 100%; min-height: 132px; height: 132px; max-height: 40vh; font-size: 16px; }
-      .btn { width: 100%; min-height: 56px; }
-      .hint { margin: -4px 14px 14px; }
+      .chat-input-wrap { padding: 12px; }
+      textarea { min-height: 132px; height: 132px; max-height: 40vh; padding: 14px 72px 14px 14px; font-size: 16px; }
+      .btn { right: 21px; bottom: 21px; width: 52px; height: 52px; font-size: 27px; }
+      .hint { margin: -2px 12px 14px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
     }
   </style>
 </head>
@@ -107,13 +130,13 @@
         <span class="badge">Gemini</span>
       </div>
       <div class="chat-body" id="chatBody" aria-live="polite">
-        <div class="message bot">Salam! Tapşırığınızı aşağıya yazın. Mobil telefonda yazı sahəsi böyük, göndər düyməsi isə onun altında görünəcək.</div>
+        <div class="message bot">Salam! Tapşırığınızı aşağıya yazın. Robot düyməsinə basaraq göndərə bilərsiniz.</div>
       </div>
       <form class="chat-input-wrap" id="chatForm">
         <textarea id="chatInput" aria-label="Əmr və ya sual" placeholder="Əmr və ya sualınızı bura yazın..."></textarea>
-        <button class="btn" id="sendBtn" type="submit">Göndər</button>
+        <button class="btn" id="sendBtn" type="submit" aria-label="Əmri göndər" title="Əmri göndər">🤖</button>
       </form>
-      <p class="hint">Göndərmək üçün düyməyə basın. Yeni sətir üçün Shift + Enter istifadə edin.</p>
+      <p class="hint">Robot düyməsinə basıb göndərin. Yeni sətir üçün Shift + Enter istifadə edin.</p>
     </section>
   </main>
 
@@ -144,7 +167,8 @@
       chatInput.value = "";
       const loading = addMessage("Tapşırıq göndərilir, gözləyin...", "bot");
       sendBtn.disabled = true;
-      sendBtn.textContent = "Göndərilir...";
+      sendBtn.textContent = "⏳";
+      sendBtn.setAttribute("aria-label", "Sorğu göndərilir");
 
       try {
         const response = await fetch(API_URL, {
@@ -161,7 +185,8 @@
         loading.textContent = "Sorğu göndərilə bilmədi: " + error.message + ". Backend xidmətinin işlədiyini yoxlayın.";
       } finally {
         sendBtn.disabled = false;
-        sendBtn.textContent = "Göndər";
+        sendBtn.textContent = "🤖";
+        sendBtn.setAttribute("aria-label", "Əmri göndər");
         chatBody.scrollTop = chatBody.scrollHeight;
       }
     });
