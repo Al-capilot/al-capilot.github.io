@@ -147,7 +147,7 @@
     const chatInput = document.getElementById("chatInput");
     const sendBtn = document.getElementById("sendBtn");
     const chatForm = document.getElementById("chatForm");
-    const API_URL = "https://al-business-backend.onrender.com/run";
+    const API_URL = "https://al-business-multi-agent.onrender.com/api/run-workflow";
 
     function addMessage(text, sender) {
       const message = document.createElement("div");
@@ -162,6 +162,13 @@
       if (typeof value === "string") return value.trim();
       if (typeof value === "number") return String(value);
       if (!value || typeof value !== "object" || depth > 3) return "";
+
+      if (Array.isArray(value.logs)) {
+        return value.logs
+          .map((entry) => entry && [entry.agent, entry.message].filter(Boolean).join(": "))
+          .filter(Boolean)
+          .join("\n\n");
+      }
 
       for (const key of ["answer", "response", "result", "output", "text", "message", "data"]) {
         if (Object.prototype.hasOwnProperty.call(value, key)) {
