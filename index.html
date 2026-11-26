@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Al-Capilot // Gemini & Groq Auto-Route</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: sans-serif; }
+    body { background: #030811; color: #e0f7ff; padding: 10px; display: flex; flex-direction: column; gap: 10px; }
+    .box { background: #07172b; border: 1px solid #00f3ff44; border-radius: 10px; padding: 10px; display: flex; flex-direction: column; gap: 8px; }
+    .row { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+    input, select, textarea { flex: 1; min-width: 120px; background: #020a14; color: #fff; border: 1px solid #00f3ff44; border-radius: 8px; padding: 9px; font-size: 0.88rem; }
+    textarea { width: 100%; min-height: 95px; font-family: monospace; font-size: 0.8rem; }
+    button { background: #00f3ff22; color: #00f3ff; border: 1px solid #00f3ff; border-radius: 8px; padding: 8px 10px; font-weight: bold; font-size: 0.78rem; cursor: pointer; }
+    .btn-g { color: #00ff9d; border-color: #00ff9d; background: #00ff9d18; }
+    .chat { height: 225px; overflow-y: auto; display: flex; flex-direction: column; gap: 7px; padding: 6px; background: #020a14; border-radius: 8px; border: 1px solid #00f3ff22; }
+    .msg { padding: 8px 10px; border-radius: 8px; font-size: 0.86rem; white-space: pre-wrap; max-width: 92%; line-height: 1.4; }
+    .u { align-self: flex-end; background: #1d4ed8; color: #fff; }
+    .b { align-self: flex-start; background: #0d243f; border: 1px solid #00ff9d55; }
+    .err { align-self: flex-start; background: #3b0d16; border: 1px solid #ff4d6d; color: #ffd6de; }
+    .muted { font-size: 0.76rem; color: #9bc4dc; }
+  </style>
+</head>
+<body>
+  <div class="box">
+    <div class="row" style="justify-content: space-between;">
+      <strong>AL-CAPILOT // GEMINI & GROQ AUTO-ROUTE</strong>
+      <span id="clk" class="muted">00:00:00</span>
+    </div>
+    <div id="stat" class="muted">Status: Hazırdır</div>
+  </div>
+
+  <div class="box">
+    <strong>AÇAR VƏ VERSİYA AXTARIŞI</strong>
+    <div class="row">
+      <select id="prov">
+        <option value="gemini">Google Gemini</option>
+        <option value="groq">Groq</option>
+        <option value="openrouter">OpenRouter</option>
+        <option value="render">Render Backend</option>
+      </select>
+      <input id="apiKey" type="text" placeholder="API açarını yapışdırın...">
+      <button type="button" class="btn-g" onclick="saveAndScan()">Yadda Saxla və Tap</button>
+    </div>
+    <div id="keyStatus" class="muted"></div>
+  </div>
+
+  <div class="box">
+    <strong>CANLI ÇAT (ADSENSE & VİDEO REKLAM)</strong>
+    <div class="chat" id="chat"></div>
+    <div class="row">
+      <input id="inp" type="text" placeholder="Sorğu yazın..." onkeydown="if(event.key==='Enter'){ event.preventDefault(); sendMsg(); }">
+      <button type="button" class="btn-g" onclick="sendMsg()">Göndər</button>
+      <button type="button" onclick="clearChat()">Təmizlə</button>
+    </div>
+    <div class="row">
+      <button type="button" onclick="adsenseAudit()">📊 AdSense Audit</button>
+      <button type="button" onclick="videoAdPitch()">🎬 Video Reklam</button>
+      <button type="button" onclick="sendPreset('Saytda AdSense RPM və video reklam gəlirini artırmaq üçün plan yaz.')">📈 Gəlir Planı</button>
+    </div>
+  </div>
+
+  <div class="box">
+    <strong>KOD STUDİYASI</strong>
+    <div class="row">
+      <button type="button" class="btn-g" onclick="sendPreset('Video reklam yerləşdirməsi üçün təmiz HTML və JS kodu yaz.')">🎬 AI Video Ad Kodu</button>
+      <button type="button" onclick="checkSyntax()">🛠️ JS Xəta Yoxla</button>
+    </div>
+    <textarea id="codeArea" placeholder="Kod burada..."></textarea>
+  </div>
+
+  <script>
+    const STORE = 'al_omni_gg_v4';
+    const RENDER_URL = 'https://al-business-backend.onrender.com/run';
+    const SYS = 'Sən Google AdSense mütəxəssisi və video reklam satışı üzrə strateqsən. Qısa, praktik və gəlir yönümlü cavab ver.';
+
+    const FALLBACK_MODELS = {
+      gemini: [
+        'gemini-2.5-flash',
+        'gemini-2.0-flash',
+        'gemini-2.0-flash-lite',
+        'gemini-1.5-flash',
+        'gemini-1.5-flash-8b',
+        'gemini-1.5-pro'
+      ],
+      groq: [
+        'llama-3.3-70b-versatile',
+        'llama-3.1-8b-instant',
+        'gemma2-9b-it',
+        'mixtral-8x7b-32768',
+        'deepseek-r1-distill-llama-70b'
+      ],
+      openrouter: [
+        'openrouter/free',
+        'google/gemma-2-9b-it:free',
+        'meta-llama/llama-3.3-70b-instruct:free',
+        'deepseek/deepseek-chat-v3-0324:free'
+      ]
+    };
+
+    let cfg = {
+      active: 'gemini',
+      keys: { gemini: '', groq: '', openrouter: '', render: '' },
+      working: {},
+      foundList: {}
+    };
+
+    try {
+      const s = JSON.parse(localStorage.getItem(STORE) || 'null');
+      if (s && s.keys) {
+        cfg = {
+          ...cfg,
+          ...s,
+          keys: { ...cfg.keys, ...s.keys },
+          working: s.working || {},
+          foundList: s.foundList || {}
+        };
+      }
+    } catch {}
+
+    setInterval(() => {
+      document.getElementById('clk').textContent = new Date().toTimeString().slice(0, 8);
+    }, 1000);
+
+    function persist() {
+      localStorage.setItem(STORE, JSON.stringify(cfg));
+      syncUI();
+    }
+
+    function syncUI() {
+      document.getElementById('prov').value = cfg.active;
+      const parts = ['gemini', 'groq', 'openrouter'].map(p => {
+        const has = cfg.keys[p] ? 'VAR' : 'YOX';
+        const mod = cfg.working[p] ? ' [' + cfg.working[p] + ']' : '';
+        const cnt = (cfg.foundList[p] && cfg.foundList[p].length) ? ' (' + cfg.foundList[p].length + ' versiya)' : '';
+        return p.toUpperCase() + ': ' + has + mod + cnt;
+      });
+      document.getElementById('keyStatus').textContent = 'Aktiv: ' + cfg.active.toUpperCase() + ' | ' + parts.join(' | ');
+    }
+
+    function addBubble(cls, title, text) {
+      const box = document.getElementById('chat');
+      const d = document.createElement('div');
+      d.className = 'msg ' + cls;
+      d.innerHTML = '<div style="font-size:0.7rem;opacity:0.75;margin-bottom:3px;">' + title + '</div>' +
+        String(text || '').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      box.appendChild(d);
+      box.scrollTop = box.scrollHeight;
+    }
+
+    function clearChat() {
+      document.getElementById('chat').innerHTML = '';
+    }
+
+    async function fetchRemoteModels(prov, key) {
+      if (prov === 'gemini') {
+        const res = await fetch('https://generativelanguage.googleapis.com/v1beta/models?key=' + encodeURIComponent(key));
+        const d = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error('Gemini /models ' + res.status + ': ' + (d.error?.message || res.statusText));
+        return (d.models || [])
+          .filter(m => !m.supportedGenerationMethods || m.supportedGenerationMethods.includes('generateContent'))
+          .map(m => String(m.name || '').replace(/^models\//, ''))
+          .filter(Boolean);
+      }
+
+      if (prov === 'groq') {
+        const res = await fetch('https://api.groq.com/openai/v1/models', {
+          headers: { Authorization: 'Bearer ' + key }
+        });
+        const d = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error('Groq /models ' + res.status + ': ' + (d.error?.message || res.statusText));
+        return (d.data || [])
+          .map(m => String(m.id || ''))
+          .filter(id => id && !/whisper|guard|tts|transcribe/i.test(id));
+      }
+
+      if (prov === 'openrouter') {
+        const res = await fetch('https://openrouter.ai/api/v1/models');
+        const d = await res.json().catch(() => ({}));
+        const free = (d.data || []).map(m => m.id).filter(id => id && id.endsWith(':free')).slice(0, 8);
+        return ['openrouter/free', ...free];
+      }
+
+      return [];
+    }
+
+    async function buildCandidateList(prov, key) {
+      let remote = [];
+      let listErr = '';
+      try {
+        remote = await fetchRemoteModels(prov, key);
+        if (remote.length) cfg.foundList[prov] = remote;
+      } catch (e) {
+        listErr = e.message;
+      }
+
+      const cached = cfg.foundList[prov] || [];
+      const fb = FALLBACK_MODELS[prov] || [];
+      const all = [cfg.working[prov], ...remote, ...cached, ...fb].filter((v, i, a) => v && a.indexOf(v) === i);
+      return { all, listErr };
+    }
+
+    async function callSingleModel(prov, key, model, prompt) {
+      if (prov === 'gemini') {
+        const url = 'https://generativelanguage.googleapis.com/v1beta/models/' + encodeURIComponent(model) + ':generateContent?key=' + encodeURIComponent(key);
+        const res = await fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ contents: [{ parts: [{ text: SYS + '\n\n' + prompt }] }] })
+        });
+        const d = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(model + ' -> HTTP ' + res.status + ': ' + (d.error?.message || res.statusText));
+        const txt = d.candidates?.[0]?.content?.parts?.map(p => p.text || '').join('').trim();
+        if (!txt) throw new Error(model + ' -> boş cavab');
+        return txt;
+      }
+
+      const url = prov === 'groq'
+        ? 'https://api.groq.com/openai/v1/chat/completions'
+        : 'https://openrouter.ai/api/v1/chat/completions';
+
+      const headers = {
+        'Content-Type': 'application/json',
+        Authorization: 'Bearer ' + key
+      };
+      if (prov === 'openrouter') {
+        headers['HTTP-Referer'] = location.origin || 'https://al-capilot.github.io';
+        headers['X-Title'] = 'Al-Capilot';
+      }
+
+      const res = await fetch(url, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({
+          model,
+          messages: [
+            { role: 'system', content: SYS },
+            { role: 'user', content: prompt }
+          ]
+        })
+      });
+      const d = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(model + ' -> HTTP ' + res.status + ': ' + (d.error?.message || res.statusText));
+      const txt = d.choices?.[0]?.message?.content?.trim();
+      if (!txt) throw new Error(model + ' -> boş cavab');
+      return txt;
+    }
+
+    async function runProvider(prov, prompt) {
+      const key = cfg.keys[prov] || '';
+      if (prov === 'render') {
+        const res = await fetch(key.startsWith('http') ? key : RENDER_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ prompt: SYS + '\n\n' + prompt })
+        });
+        const d = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error('Render -> HTTP ' + res.status);
+        const txt = String(d.answer || d.response || d.result || d.output || d.text || d.message || '').trim();
+        if (!txt) throw new Error('Render -> boş cavab');
+        return { model: 'render-backend', text: txt };
+      }
+
+      if (!key) throw new Error(prov.toUpperCase() + ' API açarı daxil edilməyib.');
+
+      const { all, listErr } = await buildCandidateList(prov, key);
+      const errs = [];
+      if (listErr) errs.push(listErr);
+
+      for (const model of all) {
+        document.getElementById('stat').textContent = prov.toUpperCase() + ' yoxlanır: ' + model;
+        try {
+          const text = await callSingleModel(prov, key, model, prompt);
+          cfg.working[prov] = model;
+          persist();
+          return { model, text };
+        } catch (e) {
+          errs.push(e.message);
+        }
+      }
+
+      throw new Error(errs.join(' | ') || prov + ' işləyən model tapılmadı.');
+    }
+
+    async function saveAndScan() {
+      const prov = document.getElementById('prov').value;
+      const raw = document.getElementById('apiKey').value.replace(/\s+/g, '');
+      cfg.active = prov;
+      if (raw) {
+        cfg.keys[prov] = raw;
+        delete cfg.working[prov];
+        delete cfg.foundList[prov];
+      }
+      document.getElementById('apiKey').value = '';
+      persist();
+
+      document.getElementById('stat').textContent = prov.toUpperCase() + ' versiyaları axtarılır...';
+      try {
+        const res = await runProvider(prov, 'Yalnız "OK" yaz.');
+        const count = (cfg.foundList[prov] && cfg.foundList[prov].length) || 1;
+        document.getElementById('stat').textContent = 'Tapıldı: ' + prov.toUpperCase() + ' -> ' + res.model + ' (' + count + ' versiya)';
+        addBubble('b', prov.toUpperCase() + ' // ' + res.model, 'İşləyən versiya tapıldı: ' + res.model);
+      } catch (err) {
+        document.getElementById('stat').textContent = 'Xəta: ' + err.message;
+        addBubble('err', prov.toUpperCase() + ' XƏTA', err.message);
+      }
+    }
+
+    async function sendMsg() {
+      const inp = document.getElementById('inp');
+      const prompt = inp.value.trim();
+      if (!prompt) { inp.focus(); return; }
+      inp.value = '';
+      addBubble('u', 'SİZ', prompt);
+
+      const order = [cfg.active, 'gemini', 'groq', 'openrouter', 'render'].filter((v, i, a) => a.indexOf(v) === i);
+      const allErrs = [];
+
+      for (const prov of order) {
+        if (prov !== 'render' && !cfg.keys[prov]) continue;
+        try {
+          const out = await runProvider(prov, prompt);
+          document.getElementById('stat').textContent = 'Cavab: ' + prov.toUpperCase() + ' (' + out.model + ')';
+          addBubble('b', prov.toUpperCase() + ' // ' + out.model, out.text);
+          if (out.text.includes('```') || out.text.includes('<script') || out.text.includes('function ')) {
+            document.getElementById('codeArea').value = out.text;
+          }
+          return;
+        } catch (e) {
+          allErrs.push(e.message);
+        }
+      }
+
+      document.getElementById('stat').textContent = 'Bağlantı alınmadı';
+      addBubble('err', 'XƏTA', allErrs.length ? allErrs.join('\n') : 'Açar daxil edib "Yadda Saxla və Tap" basın.');
+    }
+
+    function sendPreset(t) {
+      document.getElementById('inp').value = t;
+      sendMsg();
+    }
+
+    function adsenseAudit() {
+      const t = document.getElementById('inp').value.trim();
+      addBubble('u', 'SİZ', 'AdSense Audit' + (t ? ': ' + t : ''));
+      addBubble('b', 'ADSENSE AUDIT',
+        '1. Orijinal məzmun və aydın naviqasiya saxlayın.\n' +
+        '2. Reklam bloklarına sabit ölçü verin (CLS < 0.1).\n' +
+        '3. Reklama klik çağırışı və sıx banner yerləşdirməsindən çəkinin.\n' +
+        '4. Məqalə içi və sonu reklam yerləri ilə RPM-i yoxlayın.');
+    }
+
+    function videoAdPitch() {
+      const t = document.getElementById('inp').value.trim();
+      addBubble('u', 'SİZ', 'Video Reklam Satışı' + (t ? ': ' + t : ''));
+      addBubble('b', 'VIDEO AD PITCH',
+        '1. 15–30 san sponsorlu video + brend linki/promo-kod.\n' +
+        '2. Pre-roll / mid-roll və ya xüsusi video blok.\n' +
+        '3. Təklif: "Hədəf auditoriyaya birbaşa video təqdimatla yüksək diqqət və dönüşüm əldə edin."');
+    }
+
+    function checkSyntax() {
+      const raw = document.getElementById('codeArea').value.replace(/```[a-z]*\n?/gi, '').replace(/```/g, '').trim();
+      if (!raw) {
+        document.getElementById('stat').textContent = 'Kod sahəsi boşdur.';
+        return;
+      }
+      try {
+        new Function(raw);
+        document.getElementById('stat').textContent = 'JS sintaksisi düzgündür.';
+      } catch (e) {
+        document.getElementById('stat').textContent = 'JS xəta: ' + e.message;
+      }
+    }
+
+    syncUI();
+  </script>
+</body>
+</html>
